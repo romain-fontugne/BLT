@@ -2,6 +2,7 @@ import sys
 from subprocess import Popen, PIPE
 import glob
 import radix
+import hashlib
 
 def tagging(files, rtree=radix.Radix()):
 
@@ -18,11 +19,11 @@ def tagging(files, rtree=radix.Radix()):
             
             # Duplicate Withdraw Tag
             if node is None:
-                line = "    # ".join([line,"Duplicate Withdraw"])
+                line = line + "   # Duplicate Withdraw"
             
             # Delete Tag
             else:
-                line = "    # ".join([line,"Delete"])
+                line = line + "   # Delete"
                 node=rtree.delete(res[5])
         
         else:
@@ -33,29 +34,37 @@ def tagging(files, rtree=radix.Radix()):
             path_list = sPath.split(' ')
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
-                line = "   # ".join([line,"Prepending"])
+                line = line + "   # Prepending"
             
             # New Prefix Tag
             if node is None:
-                line = "    # ".join([line,"New Prefix"])
+                line = line + "    # New Prefix"
                 node = rtree.add(zPfx)
                 node.data["firsttime"] = zDt
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
-            
+                node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
+
             # Path Change, Origin Change, Duplicate Announce Tag
             else:
                 if sPath != node.data["path"]:
                     if path_list[-1] != node.data["path"].split(" ")[-1]:
-                        line = "   # ".join([line,"Origin Change"])
+                        line = line + "   # Origin Change"
                     else:
-                        line = "   # ".join([line,"Path Change"])
+                        line = line + "   # Path Change"
                     node.data["lasttime"] = zDt
                     node.data["path"] = sPath
-                
+                    node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
+
                 else:
-                    line = "   # ".join([line,"Duplicate Announce"])
-                    node.data["lasttime"] = zDt 
+                    message_h = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
+                    if node.data["MD5"] == message_h:
+                        line = line + "   # Duplicate Announce"
+                        node.data["lasttime"] = zDt
+                    else:
+                        line = line + "   # Attribute Change"
+                        node.data["lasttime"] = zDt
+                        node.data["MD5"] = message_h
         
         update_tag = "\n".join([update_tag,line])
     

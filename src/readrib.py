@@ -2,6 +2,7 @@ import sys
 from subprocess import Popen, PIPE
 import glob
 import radix
+import hashlib
 
 def readrib(files):
     
@@ -18,7 +19,7 @@ def readrib(files):
         node.data["firsttime"] = zDt
         node.data["lasttime"] = zDt
         node.data["path"] = sPath 
-
+        node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
     return rtree
 
 if __name__ == "__main__":
@@ -39,4 +40,4 @@ if __name__ == "__main__":
 
     # Print the radix tree
     for rnode in rtree:
-        print("%s: %s" % (rnode.prefix, rnode.data["path"]))
+        print("%s: %s" % (rnode.prefix, rnode.data["MD5"]))
