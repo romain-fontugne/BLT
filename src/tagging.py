@@ -7,16 +7,20 @@ def tagging(files, rtree=radix.Radix()):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
-    
+    update_tag=""
+
     for line in p1.stdout:
         line=line.rstrip("\n")
         res = line.split('|',15)
+        
         if res[2] == "W":
             node = rtree.search_exact(res[5])
             
+            # Duplicate Withdraw Tag
             if node is None:
                 line = "    # ".join([line,"Duplicate Withdraw"])
             
+            # Delete Tag
             else:
                 line = "    # ".join([line,"Delete"])
                 node=rtree.delete(res[5])
@@ -30,7 +34,8 @@ def tagging(files, rtree=radix.Radix()):
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
                 line = "   # ".join([line,"Prepending"])
-
+            
+            # New Prefix Tag
             if node is None:
                 line = "    # ".join([line,"New Prefix"])
                 node = rtree.add(zPfx)
@@ -38,6 +43,7 @@ def tagging(files, rtree=radix.Radix()):
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
             
+            # Path Change, Origin Change, Duplicate Announce Tag
             else:
                 if sPath != node.data["path"]:
                     if path_list[-1] != node.data["path"].split(" ")[-1]:
@@ -50,8 +56,10 @@ def tagging(files, rtree=radix.Radix()):
                 else:
                     line = "   # ".join([line,"Duplicate Announce"])
                     node.data["lasttime"] = zDt 
-        print line
-    return rtree
+        
+        update_tag = "\n".join([update_tag,line])
+    
+    return [rtree, update_tag]
 
 if __name__ == "__main__":
 
@@ -67,8 +75,7 @@ if __name__ == "__main__":
 
     files.sort()
 
-    rtree = tagging(files)
+    rtree, update_tag = tagging(files)
 
-    # Print the radix tree
-    for rnode in rtree:
-        print("%s: %s" % (rnode.prefix, rnode.data["path"]))
+    # Print the update_tag
+    print update_tag

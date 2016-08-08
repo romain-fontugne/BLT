@@ -4,7 +4,6 @@ import glob
 import radix
 import readrib
 import tagging
-import copy
 
 
 if __name__ == "__main__":
@@ -16,7 +15,7 @@ if __name__ == "__main__":
 	
 	arguments.pop(0)
 		
-	# list rib files
+	# read rib files
 	rib_files = glob.glob(arguments[0])
 	
 	if len(rib_files)==0:
@@ -29,6 +28,7 @@ if __name__ == "__main__":
 
 	arguments.pop(0)
 	
+    # read update files and tag them
 	for arg in arguments:
 		
 		update_files = glob.glob(arg)
@@ -38,7 +38,9 @@ if __name__ == "__main__":
 			
 		update_files.sort()
 
-		rtree=tagging.tagging(update_files,rtree)
+		rtree, update_tag = tagging.tagging(update_files,rtree)
+        
+        print update_tag
 
 #	for node in rtree:
 #		print("%s: %s" % (node.prefix, node.data["path"]))
