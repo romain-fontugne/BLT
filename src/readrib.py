@@ -3,8 +3,9 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 
-def readrib(files, rtree=radix.Radix()):
-
+def readrib(files):
+    
+    rtree=radix.Radix()
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
         print("usage: %s ribfiles*.bz2" % sys.argv[0])
         sys.exit()
         
-    # list update files
+    # list rib files
     files = glob.glob(sys.argv[1])
     if len(files)==0:
         print("Files not found!")
