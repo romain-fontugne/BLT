@@ -19,11 +19,11 @@ def tagging(files, rtree=radix.Radix()):
             
             # Duplicate Withdraw Tag
             if node is None:
-                line = line + " #Duplicate_Withdraw"
+                line = line + " #duplicate_withdraw"
             
             # Delete Tag
             else:
-                line = line + " #Delete"
+                line = line + " #delete"
                 node=rtree.delete(res[5])
         
         else:
@@ -34,11 +34,11 @@ def tagging(files, rtree=radix.Radix()):
             path_list = sPath.split(' ')
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
-                line = line + " #Prepending"
+                line = line + " #prepending"
             
             # New Prefix Tag
             if node is None:
-                line = line + " #New_Prefix"
+                line = line + " #new_prefix"
                 node = rtree.add(zPfx)
                 node.data["firsttime"] = zDt
                 node.data["lasttime"] = zDt
@@ -49,9 +49,9 @@ def tagging(files, rtree=radix.Radix()):
             else:
                 if sPath != node.data["path"]:
                     if path_list[-1] != node.data["path"].split(" ")[-1]:
-                        line = line + " #Origin_Change"
+                        line = line + " #origin_change"
                     else:
-                        line = line + " #Path_Change"
+                        line = line + " #path_change"
                     node.data["lasttime"] = zDt
                     node.data["path"] = sPath
                     node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
@@ -59,10 +59,10 @@ def tagging(files, rtree=radix.Radix()):
                 else:
                     message_h = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
                     if node.data["MD5"] == message_h:
-                        line = line + " #Duplicate_Announce"
+                        line = line + " #duplicate_announce"
                         node.data["lasttime"] = zDt
                     else:
-                        line = line + " #Attribute_Change"
+                        line = line + " #attribute_change"
                         node.data["lasttime"] = zDt
                         node.data["MD5"] = message_h
         
