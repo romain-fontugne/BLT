@@ -43,10 +43,11 @@ def tagging(files, rtree=radix.Radix()):
                 node.data["firsttime"] = zDt
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
+                node.data["community"] = z2
                 node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
 
-            # Path Change, Origin Change, Duplicate Announce Tag
             else:
+                # Path Change, Origin Change
                 if sPath != node.data["path"]:
                     if path_list[-1] != node.data["path"].split(" ")[-1]:
                         line = line + " #origin_change"
@@ -55,11 +56,18 @@ def tagging(files, rtree=radix.Radix()):
                     node.data["lasttime"] = zDt
                     node.data["path"] = sPath
                     node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
-
+                
+                # Duplicate Announce, Community Change, Attribute Change 
+                
                 else:
                     message_h = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
                     if node.data["MD5"] == message_h:
                         line = line + " #duplicate_announce"
+                        node.data["lasttime"] = zDt
+
+                    elif node.data["community"] != z2:
+                        line = line + " #community_change"
+                        node.data["community"] = z2
                         node.data["lasttime"] = zDt
                     else:
                         line = line + " #attribute_change"
