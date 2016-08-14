@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
 	rib_files.sort()
 
-	rtree=readrib.readrib(rib_files)
+	rtreelist = readrib.readrib(rib_files)
 
 	arguments.pop(0)
 	
@@ -38,9 +38,6 @@ if __name__ == "__main__":
 			
 		update_files.sort()
 
-		rtree, update_tag = tagging.tagging(update_files,rtree)
+		rtreelist, update_tag = tagging.tagging(update_files,rtreelist)
         
         print update_tag
-
-#	for node in rtree:
-#		print("%s: %s" % (node.prefix, node.data["path"]))

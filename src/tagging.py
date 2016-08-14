@@ -4,39 +4,46 @@ import glob
 import radix
 import hashlib
 
-def tagging(files, rtree=radix.Radix()):
+def tagging(files, rtreelist):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
     update_tag=""
-
+    
+    # Get rtrees for each peers from rtreelist
+    for rtree in rtreelist[1:]:
+        prefix = rtree.nodes()[0].data["peer"]
+        prefix = "".join(prefix.split("."))
+        prefix = "".join(prefix.split(":"))
+        exec("rtree_" + prefix + "=rtree")
+    
     for line in p1.stdout:
         line=line.rstrip("\n")
         res = line.split('|',15)
+        prefix = "".join(res[3].split("."))
+        prefix = "".join(prefix.split(":"))
         
+        if rtreelist[0].search_exact(res[3]) is None:
+            rtreelist[0].add(res[3])
+            exec("rtree_" + prefix + "=radix.Radix()")
+            exec("rtreelist.append(rtree_" + prefix + ")")
+       
+        # Tag each message
         if res[2] == "W":
-            node = rtree.search_exact(res[5])
+            exec("node = rtree_" + prefix + ".search_exact(res[5])")
             
-            # Duplicate Withdraw Tag
             if node is None:
                 line = line + " #duplicate_withdraw"
             
-            # Delete Tag
             else:
-                line = line + " #delete"
-                node=rtree.delete(res[5])
+                line = line + " #remove_prefix"
+                exec("node=rtree_" + prefix + ".delete(res[5])")
         
         else:
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
-            node = rtree.search_exact(zPfx)
-            
-            # Prepending Tag
+            exec("node = rtree_" + prefix + ".search_exact(zPfx)")
             path_list = sPath.split(' ')
-            path_list_uniq = list(set(path_list))
-            if len(path_list_uniq) != len(path_list):
-                line = line + " #prepending"
-            
-            # New Prefix Tag
+
             if node is None:
                 line = line + " #new_prefix"
                 node = rtree.add(zPfx)
@@ -44,39 +51,51 @@ def tagging(files, rtree=radix.Radix()):
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
                 node.data["community"] = z2
-                node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
+                node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+                node.data["peer"] = zOrig
 
             else:
-                # Path Change, Origin Change
+                message_h = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+
                 if sPath != node.data["path"]:
                     if path_list[-1] != node.data["path"].split(" ")[-1]:
                         line = line + " #origin_change"
                     else:
                         line = line + " #path_change"
-                    node.data["lasttime"] = zDt
-                    node.data["path"] = sPath
-                    node.data["MD5"] = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
-                
-                # Duplicate Announce, Community Change, Attribute Change 
-                
+                        node.data["lasttime"] = zDt
+                        node.data["path"] = sPath
+                        node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+
+                    if node.data["MD5"] != message_h:
+                        if node.data["community"] != z2:
+                            line = line + " #community_change"
+                            node.data["community"] = z2
+                            node.data["lasttime"] = zDt
+                        else:
+                            line = line + " #attribute_change"
+                            node.data["lasttime"] = zDt
+                            node.data["MD5"] = message_h
                 else:
-                    message_h = hashlib.md5(zTd + zS + zOrig + zPfx + sPath + zPro + zOr + z0 + z1 + z2 + z3 + z4 + z5).digest()
-                    if node.data["MD5"] == message_h:
+                    if node.data["MD5"] != message_h:
+                        if node.data["community"] != z2:
+                            line = line + " #community_change"
+                            node.data["community"] = z2
+                            node.data["lasttime"] = zDt
+                        else:
+                            line = line + " #attribute_change"
+                            node.data["lasttime"] = zDt
+                            node.data["MD5"] = message_h
+                    else:
                         line = line + " #duplicate_announce"
                         node.data["lasttime"] = zDt
-
-                    elif node.data["community"] != z2:
-                        line = line + " #community_change"
-                        node.data["community"] = z2
-                        node.data["lasttime"] = zDt
-                    else:
-                        line = line + " #attribute_change"
-                        node.data["lasttime"] = zDt
-                        node.data["MD5"] = message_h
+            # Prepending Tag
+            path_list_uniq = list(set(path_list))
+            if len(path_list_uniq) != len(path_list):
+                line = line + " #prepending"
         
         update_tag = "\n".join([update_tag,line])
     
-    return [rtree, update_tag]
+    return [rtreelist, update_tag]
 
 if __name__ == "__main__":
 
