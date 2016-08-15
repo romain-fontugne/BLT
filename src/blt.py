@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
 	rib_files.sort()
 
-	rtreelist = readrib.readrib(rib_files)
+	rtreedict = readrib.readrib(rib_files)
 
 	arguments.pop(0)
 	
@@ -38,6 +38,6 @@ if __name__ == "__main__":
 			
 		update_files.sort()
 
-		rtreelist, update_tag = tagging.tagging(update_files,rtreelist)
+		rtreedict, update_tag = tagging.tagging(update_files,rtreedict)
         
         print update_tag

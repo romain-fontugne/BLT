@@ -4,49 +4,40 @@ import glob
 import radix
 import hashlib
 
-def tagging(files, rtreelist):
+def tagging(files, rtreedict = {}):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
     update_tag=""
     
-    # Get rtrees for each peers from rtreelist
-    for rtree in rtreelist[1:]:
-        prefix = rtree.nodes()[0].data["peer"]
-        prefix = "".join(prefix.split("."))
-        prefix = "".join(prefix.split(":"))
-        exec("rtree_" + prefix + "=rtree")
     
     for line in p1.stdout:
         line=line.rstrip("\n")
         res = line.split('|',15)
-        prefix = "".join(res[3].split("."))
-        prefix = "".join(prefix.split(":"))
+        zOrig = res[3]
         
-        if rtreelist[0].search_exact(res[3]) is None:
-            rtreelist[0].add(res[3])
-            exec("rtree_" + prefix + "=radix.Radix()")
-            exec("rtreelist.append(rtree_" + prefix + ")")
+        if rtreedict.has_key(zOrig) is False:
+            rtreedict[zOrig] = radix.Radix()
        
         # Tag each message
         if res[2] == "W":
-            exec("node = rtree_" + prefix + ".search_exact(res[5])")
-            
-            if node is None:
+            if rtreedict[zOrig].search_exact(res[5]) is None:
                 line = line + " #duplicate_withdraw"
             
             else:
                 line = line + " #remove_prefix"
-                exec("node=rtree_" + prefix + ".delete(res[5])")
+                rtreedict[zOrig].delete(res[5])
         
         else:
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
-            exec("node = rtree_" + prefix + ".search_exact(zPfx)")
+            node = rtreedict[zOrig].search_exact(zPfx)
             path_list = sPath.split(' ')
+            origin_as = path_list[-1]
+            
 
             if node is None:
                 line = line + " #new_prefix"
-                node = rtree.add(zPfx)
+                node = rtreedict[zOrig].add(zPfx)
                 node.data["firsttime"] = zDt
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
@@ -58,7 +49,7 @@ def tagging(files, rtreelist):
                 message_h = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
 
                 if sPath != node.data["path"]:
-                    if path_list[-1] != node.data["path"].split(" ")[-1]:
+                    if origin_as != node.data["path"].split(" ")[-1]:
                         line = line + " #origin_change"
                     else:
                         line = line + " #path_change"
@@ -95,7 +86,7 @@ def tagging(files, rtreelist):
         
         update_tag = "\n".join([update_tag,line])
     
-    return [rtreelist, update_tag]
+    return [rtreedict, update_tag]
 
 if __name__ == "__main__":
 
@@ -111,7 +102,7 @@ if __name__ == "__main__":
 
     files.sort()
 
-    rtree, update_tag = tagging(files)
+    rtreedict, update_tag = tagging(files)
 
     # Print the update_tag
     print update_tag
