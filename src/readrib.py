@@ -13,6 +13,9 @@ def readrib(files):
     for line in p1.stdout: 
         res = line.split('|',15)
         zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
+        
+        if zPfx == "0.0.0.0/0":
+            continue
 
         if rtreedict.has_key(zOrig) is False:
             rtreedict[zOrig] = radix.Radix()
@@ -28,17 +31,17 @@ def readrib(files):
     for rtree in rtreedict.values():
         for node in rtree:
             top = rtree.search_worst(node.prefix)
-            node.data["top"] = top.prefix
+            node.data["top_prefix"] = top.prefix
             if top.prefix == node.prefix:
                 if len(rtree.search_covered(node.prefix)) == 1:
-                    node.data["status"] = "lonely"
+                    node.data["prefix_type"] = "lonely"
                 else:
-                    node.data["status"] = "top"
+                    node.data["prefix_type"] = "top"
             else:
                 if top.data["as"] == node.data["as"]:
-                    node.data["status"] = "delegated"
+                    node.data["prefix_type"] = "delegated"
                 else:
-                    node.data["status"] = "deaggregated"
+                    node.data["prefix_type"] = "deaggregated"
 
     return rtreedict
 
@@ -59,5 +62,5 @@ if __name__ == "__main__":
     rtreedict = readrib(files)
     for zOrig, rtree in rtreedict.items():
         for rnode in rtree:
-            print("%s %s: %s   top = %s" % (zOrig, rnode.prefix, rnode.data["status"], rnode.data["top"]))
+            print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_type"], rnode.data["top_prefix"]))
 

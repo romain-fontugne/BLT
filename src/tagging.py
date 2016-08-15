@@ -83,9 +83,10 @@ def tagging(files, rtreedict = {}):
             if len(path_list_uniq) != len(path_list):
                 line = line + " #prepending"
         
-        update_tag = "\n".join([update_tag,line])
-    
-    return [rtreedict, update_tag]
+        # update_tag = "\n".join([update_tag,line])
+        print line
+
+    return rtreedict
 
 if __name__ == "__main__":
 
@@ -101,7 +102,7 @@ if __name__ == "__main__":
 
     files.sort()
 
-    rtreedict, update_tag = tagging(files)
+    rtreedict = tagging(files)
 
     # Print the update_tag
-    print update_tag
+    # print update_tag
