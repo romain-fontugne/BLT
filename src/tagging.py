@@ -43,7 +43,6 @@ def tagging(files, rtreedict = {}):
                 node.data["path"] = sPath
                 node.data["community"] = z2
                 node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
-                node.data["peer"] = zOrig
 
             else:
                 message_h = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
