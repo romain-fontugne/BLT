@@ -52,32 +52,27 @@ def tagging(files, rtreedict = {}):
                         line = line + " #origin_change"
                     else:
                         line = line + " #path_change"
-                        node.data["lasttime"] = zDt
-                        node.data["path"] = sPath
-                        node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
 
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
                             line = line + " #community_change"
-                            node.data["community"] = z2
-                            node.data["lasttime"] = zDt
                         else:
                             line = line + " #attribute_change"
-                            node.data["lasttime"] = zDt
-                            node.data["MD5"] = message_h
                 else:
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
                             line = line + " #community_change"
-                            node.data["community"] = z2
-                            node.data["lasttime"] = zDt
                         else:
                             line = line + " #attribute_change"
-                            node.data["lasttime"] = zDt
-                            node.data["MD5"] = message_h
                     else:
                         line = line + " #duplicate_announce"
-                        node.data["lasttime"] = zDt
+
+                # Update the radix
+                node.data["lasttime"] = zDt
+                node.data["path"] = sPath
+                node.data["community"] = z2
+                node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+
             # Prepending Tag
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
