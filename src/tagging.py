@@ -80,6 +80,14 @@ def tagging(files, timeflag, rtreedict = {}):
                     else:
                         tags = tags + " #duplicate_announce"
                         node.data["lasttime"] = zDt
+                        line = line + " #path_change"
+
+                # Update the radix
+                node.data["lasttime"] = zDt
+                node.data["path"] = sPath
+                node.data["community"] = z2
+                node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+
             # Prepending Tag
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
