@@ -3,8 +3,9 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 import hashlib
+import argparse
 
-def tagging(files, rtreedict = {}):
+def tagging(files, timeflag, rtreedict = {}):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
@@ -12,20 +13,21 @@ def tagging(files, rtreedict = {}):
     
     
     for line in p1.stdout:
-        line=line.rstrip("\n")
+        line = line.rstrip("\n")
         res = line.split('|',15)
         zOrig = res[3]
-        
+        tags = ""
+
         if rtreedict.has_key(zOrig) is False:
             rtreedict[zOrig] = radix.Radix()
        
         # Tag each message
         if res[2] == "W":
             if rtreedict[zOrig].search_exact(res[5]) is None:
-                line = line + " #duplicate_withdraw"
+                tags = tags + " #duplicate_withdraw"
             
             else:
-                line = line + " #remove_prefix"
+                tags = tags + " #remove_prefix"
                 rtreedict[zOrig].delete(res[5])
         
         else:
@@ -36,7 +38,7 @@ def tagging(files, rtreedict = {}):
             
 
             if node is None:
-                line = line + " #new_prefix"
+                tags = tags + " #new_prefix"
                 node = rtreedict[zOrig].add(zPfx)
                 node.data["firsttime"] = zDt
                 node.data["lasttime"] = zDt
@@ -49,60 +51,73 @@ def tagging(files, rtreedict = {}):
 
                 if sPath != node.data["path"]:
                     if origin_as != node.data["path"].split(" ")[-1]:
-                        line = line + " #origin_change"
+                        tags = tags + " #origin_change"
                     else:
-                        line = line + " #path_change"
+                        tags = tags + " #path_change"
                         node.data["lasttime"] = zDt
                         node.data["path"] = sPath
                         node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
 
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
-                            line = line + " #community_change"
+                            tags = tags + " #community_change"
                             node.data["community"] = z2
                             node.data["lasttime"] = zDt
                         else:
-                            line = line + " #attribute_change"
+                            tags = tags + " #attribute_change"
                             node.data["lasttime"] = zDt
                             node.data["MD5"] = message_h
                 else:
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
-                            line = line + " #community_change"
+                            tags = tags + " #community_change"
                             node.data["community"] = z2
                             node.data["lasttime"] = zDt
                         else:
-                            line = line + " #attribute_change"
+                            tags = tags + " #attribute_change"
                             node.data["lasttime"] = zDt
                             node.data["MD5"] = message_h
                     else:
-                        line = line + " #duplicate_announce"
+                        tags = tags + " #duplicate_announce"
                         node.data["lasttime"] = zDt
             # Prepending Tag
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
-                line = line + " #prepending"
+                tags = tags + " #prepending"
         
-        # update_tag = "\n".join([update_tag,line])
-        print line
+        # print tagged messages
+        if timeflag == False:
+            print line + tags
+        else:
+            print res[1] + tags
 
     return rtreedict
 
 if __name__ == "__main__":
-
-    if len(sys.argv) < 2:
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--tag", help = "output only timestamps and tags"
+                        , action = "store_true")
+    parser.add_argument("updates", help = "desplay tagged messages of given update files"
+                        , nargs = "*")
+    args = parser.parse_args()
+    
+    if len(args.updates) < 1:
         print("usage: %s updatefiles*.bz2" % sys.argv[0])
         sys.exit()
-        
-    # list update files
-    files = glob.glob(sys.argv[1])
-    if len(files)==0:
-        print("Files not found!")
-        sys.exit()
+    
+    rtreedict = {}
 
-    files.sort()
+   # list update files
+    for update in args.updates:
+        files = glob.glob(update)
+        if len(files)==0:
+            print("Files not found!")
+            sys.exit()
 
-    rtreedict = tagging(files)
+        files.sort()
+
+        rtreedict = tagging(files, args.tag, rtreedict)
 
     # Print the update_tag
     # print update_tag
