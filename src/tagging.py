@@ -4,14 +4,16 @@ import glob
 import radix
 import hashlib
 import argparse
+import Queue
 
 def tagging(files, timeflag, rtreedict = {}):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
     update_tag=""
-    
-    
+    queue = []
+    sflag = 0
+    sflag_before = 0
     for line in p1.stdout:
         line = line.rstrip("\n")
         res = line.split('|',15)
@@ -54,34 +56,36 @@ def tagging(files, timeflag, rtreedict = {}):
                         tags = tags + " #origin_change"
                     else:
                         tags = tags + " #path_change"
-                        node.data["lasttime"] = zDt
-                        node.data["path"] = sPath
-                        node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
 
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
                             tags = tags + " #community_change"
-                            node.data["community"] = z2
-                            node.data["lasttime"] = zDt
                         else:
                             tags = tags + " #attribute_change"
-                            node.data["lasttime"] = zDt
-                            node.data["MD5"] = message_h
                 else:
                     if node.data["MD5"] != message_h:
                         if node.data["community"] != z2:
                             tags = tags + " #community_change"
-                            node.data["community"] = z2
-                            node.data["lasttime"] = zDt
                         else:
                             tags = tags + " #attribute_change"
-                            node.data["lasttime"] = zDt
-                            node.data["MD5"] = message_h
                     else:
                         tags = tags + " #duplicate_announce"
-                        node.data["lasttime"] = zDt
-                        line = line + " #path_change"
 
+                        # Table Transfer Tag
+                        for Ts in queue:
+                            if int(zDt) - int(Ts) >= 60:
+                                queue.pop(0)
+                            else:
+                                break
+                        queue.append(zDt)
+                        sflag_before = sflag
+                        if len(queue) >= 2000:
+                            sflag = 1
+                        else:
+                            sflag = 0
+                        if sflag_before == 0 and sflag == 1:
+                            tags = tags + " #table_transfer"
+                        
                 # Update the radix
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
@@ -92,7 +96,8 @@ def tagging(files, timeflag, rtreedict = {}):
             path_list_uniq = list(set(path_list))
             if len(path_list_uniq) != len(path_list):
                 tags = tags + " #prepending"
-        
+            
+            
         # print tagged messages
         if timeflag == False:
             print line + tags

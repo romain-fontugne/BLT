@@ -27,21 +27,21 @@ def readrib(files):
         node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
         node.data["as"] = sPath.split(" ")[-1]
     
-    # Detect status of each prefix
+    # Detect category of each prefix
     for rtree in rtreedict.values():
         for node in rtree:
             top = rtree.search_worst(node.prefix)
             node.data["top_prefix"] = top.prefix
             if top.prefix == node.prefix:
                 if len(rtree.search_covered(node.prefix)) == 1:
-                    node.data["prefix_type"] = "lonely"
+                    node.data["prefix_category"] = "lonely"
                 else:
-                    node.data["prefix_type"] = "top"
+                    node.data["prefix_category"] = "top"
             else:
                 if top.data["as"] == node.data["as"]:
-                    node.data["prefix_type"] = "delegated"
+                    node.data["prefix_category"] = "delegated"
                 else:
-                    node.data["prefix_type"] = "deaggregated"
+                    node.data["prefix_category"] = "deaggregated"
 
     return rtreedict
 
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     rtreedict = readrib(files)
     for zOrig, rtree in rtreedict.items():
         for rnode in rtree:
-            print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_type"], rnode.data["top_prefix"]))
+            print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_category"], rnode.data["top_prefix"]))
 
