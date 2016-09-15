@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    if "outfile" in args:
+    if args.outfile != None:
         f = open(args.outfile, "w")
     
     update_no = 0
@@ -51,12 +51,12 @@ if __name__ == "__main__":
         update_no += return_list[2]
         withdraw_no += return_list[3]
         
-        if "outfile" in args:
+        if args.outfile != None:
             f.write(return_list[1])
         else:
             print return_list[1]
         
-    if "outfile" in args:
+    if args.outfile != None:
         f.close()
     
     print "#peers = " +  str(len(rtreedict))
