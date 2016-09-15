@@ -9,12 +9,18 @@ import argparse
 if __name__ == "__main__":
 	
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--tag', help = 'desplay only timestamps and tags'
-                        , action = 'store_true')
+    parser.add_argument('-t', '--tag', help = 'desplay only timestamps and tags', action = 'store_true')
+    parser.add_argument('-o', '--outfile', help = 'output text file')
     parser.add_argument("rib")
     parser.add_argument("updates", nargs = "*")
 
     args = parser.parse_args()
+    
+    if "outfile" in args:
+        f = open(args.outfile, "w")
+    
+    update_no = 0
+    withdraw_no = 0 
 
     if len(args.rib)+len(args.updates) < 2:
         print("usage: %s ribfiles*.bz2 updatefiles*.bz2" % sys.argv[0])
@@ -40,6 +46,19 @@ if __name__ == "__main__":
 			
         update_files.sort()
 
-        rtreedict = tagging.tagging(update_files, args.tag, rtreedict)
-
-        # print update_tag
+        return_list = tagging.tagging(update_files, args.tag, rtreedict)
+        rtreedict = return_list[0]
+        update_no += return_list[2]
+        withdraw_no += return_list[3]
+        
+        if "outfile" in args:
+            f.write(return_list[1])
+        else:
+            print return_list[1]
+        
+    if "outfile" in args:
+        f.close()
+    
+    print "#peers = " +  str(len(rtreedict))
+    print >> sys.stderr, "#updates = " + str(update_no)
+    print >> sys.stderr, "#withdraws = " + str(withdraw_no)

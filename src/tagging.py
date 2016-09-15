@@ -14,6 +14,10 @@ def tagging(files, timeflag, rtreedict = {}):
     queue = []
     sflag = 0
     sflag_before = 0
+    tagged_messages = ""
+    update_no = 0
+    withdraw_no = 0
+
     for line in p1.stdout:
         line = line.rstrip("\n")
         res = line.split('|',15)
@@ -25,14 +29,15 @@ def tagging(files, timeflag, rtreedict = {}):
        
         # Tag each message
         if res[2] == "W":
+            withdraw_no += 1
             if rtreedict[zOrig].search_exact(res[5]) is None:
                 tags = tags + " #duplicate_withdraw"
             
             else:
                 tags = tags + " #remove_prefix"
                 rtreedict[zOrig].delete(res[5])
-        
         else:
+            update_no += 1
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
             node = rtreedict[zOrig].search_exact(zPfx)
             path_list = sPath.split(' ')
@@ -97,14 +102,12 @@ def tagging(files, timeflag, rtreedict = {}):
             if len(path_list_uniq) != len(path_list):
                 tags = tags + " #prepending"
             
-            
-        # print tagged messages
         if timeflag == False:
-            print line + tags
+            tagged_messages = tagged_messages + line + tags + "\n"
         else:
-            print res[1] + tags
-
-    return rtreedict
+            tagged_messages = tagged_messages + res[1] + tags + "\n"
+    return_list = [rtreedict, tagged_messages, update_no, withdraw_no] 
+    return return_list
 
 if __name__ == "__main__":
     
