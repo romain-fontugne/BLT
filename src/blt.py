@@ -34,8 +34,10 @@ if __name__ == "__main__":
         sys.exit()
 
     rib_files.sort()
+    print >> sys.stderr, "reading RIB now..."
     rtreedict = readrib.readrib(rib_files)
     # read update files and tag them
+    print >> sys.stderr, "reading update now..."
     for update in args.updates:
 		
         update_files = glob.glob(update)
