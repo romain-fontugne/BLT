@@ -23,7 +23,7 @@ if __name__ == "__main__":
     withdraw_no = 0 
 
     if len(args.rib)+len(args.updates) < 2:
-        print("usage: %s ribfiles*.bz2 updatefiles*.bz2" % sys.argv[0])
+        print >> sys.stderr, ("usage: %s ribfiles*.bz2 updatefiles*.bz2" % sys.argv[0])
         sys.exit()
 	
     # read rib files
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     print >> sys.stderr, "reading RIB now..."
     rtreedict = readrib.readrib(rib_files)
     # read update files and tag them
-    print >> sys.stderr, "reading update now..."
     for update in args.updates:
-		
+        print >> sys.stderr, "reading %s now..." % update
+
         update_files = glob.glob(update)
 	
         if len(update_files)==0:
