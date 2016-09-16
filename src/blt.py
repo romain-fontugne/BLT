@@ -35,7 +35,6 @@ if __name__ == "__main__":
 
     rib_files.sort()
     rtreedict = readrib.readrib(rib_files)
-
     # read update files and tag them
     for update in args.updates:
 		
