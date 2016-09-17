@@ -5,7 +5,20 @@ import radix
 import hashlib
 import argparse
 import Queue
-import bar
+
+def PutBar(deno, mole, barlen):
+    per = 100 * mole/deno
+    perb = int(per/(100.0/barlen))
+
+    s = "\r"
+    s += "  |"
+    s += "#" * perb
+    s += "-" * (barlen - perb)
+    s += "|"
+    s += " " + (str(per) + "%").rjust(4)
+
+    sys.stderr.write("%s ( %s / %s )" % (s, mole, deno))
+
 
 def tagging(files, timeflag, rtreedict = {}):
 
@@ -114,10 +127,9 @@ def tagging(files, timeflag, rtreedict = {}):
         else:
             tagged_messages = tagged_messages + res[1] + tags + "\n"
         
-        bar.PutBar(100 * line_no/num_lines, 50)
+        PutBar(num_lines, line_no, 50)
         line_no += 1
-    bar.PutBar(100,50)
-    sys.stderr.write("\r")
+    sys.stderr.write("\n\n")
     return_list = [rtreedict, tagged_messages, num_updates, withdraw_no] 
     return return_list
 
