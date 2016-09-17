@@ -5,18 +5,25 @@ import radix
 import hashlib
 import argparse
 import Queue
+import bar
 
 def tagging(files, timeflag, rtreedict = {}):
 
     p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
     p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
+    num_lines = sum(1 for line in p1.stdout)
+    
+    p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
+    p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
+
     update_tag=""
     queue = []
     sflag = 0
     sflag_before = 0
     tagged_messages = ""
-    update_no = 0
+    num_updates = 0
     withdraw_no = 0
+    line_no = 1
 
     for line in p1.stdout:
         line = line.rstrip("\n")
@@ -37,7 +44,7 @@ def tagging(files, timeflag, rtreedict = {}):
                 tags = tags + " #remove_prefix"
                 rtreedict[zOrig].delete(res[5])
         else:
-            update_no += 1
+            num_updates += 1
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
             node = rtreedict[zOrig].search_exact(zPfx)
             path_list = sPath.split(' ')
@@ -106,7 +113,12 @@ def tagging(files, timeflag, rtreedict = {}):
             tagged_messages = tagged_messages + line + tags + "\n"
         else:
             tagged_messages = tagged_messages + res[1] + tags + "\n"
-    return_list = [rtreedict, tagged_messages, update_no, withdraw_no] 
+        
+        bar.PutBar(100 * line_no/num_lines, 50)
+        line_no += 1
+    bar.PutBar(100,50)
+    sys.stderr.write("\r")
+    return_list = [rtreedict, tagged_messages, num_updates, withdraw_no] 
     return return_list
 
 if __name__ == "__main__":

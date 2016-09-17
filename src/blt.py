@@ -60,7 +60,7 @@ if __name__ == "__main__":
         
     if args.outfile != None:
         f.close()
-    
-    print "#peers = " +  str(len(rtreedict))
+
+    print >> sys.stderr, "\n\n" + "#peers = " +  str(len(rtreedict))
     print >> sys.stderr, "#updates = " + str(update_no)
     print >> sys.stderr, "#withdraws = " + str(withdraw_no)
