@@ -3,7 +3,6 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 import hashlib
-
 def readrib(files):
     
     rtreedict = {}
