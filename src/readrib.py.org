@@ -6,10 +6,8 @@ import hashlib
 def readrib(files):
     
     rtreedict = {}
-    queues = {}
-    sflags = {}
-
-    p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", files], stdout=PIPE, bufsize=-1)
+    p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
+    p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
 
     for line in p1.stdout: 
         res = line.split('|',15)
@@ -20,11 +18,6 @@ def readrib(files):
 
         if rtreedict.has_key(zOrig) is False:
             rtreedict[zOrig] = radix.Radix()
-            queues[zOrig] = []
-            sflags[zOrig] = {}
-            sflags[zOrig]["before"] = 0
-            sflags[zOrig]["now"] = 0
-
         node = rtreedict[zOrig].add(zPfx)
         node.data["firsttime"] = zDt
         node.data["lasttime"] = zDt
@@ -32,24 +25,24 @@ def readrib(files):
         node.data["community"] = z2
         node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
         node.data["as"] = sPath.split(" ")[-1]
-
+    
     # Detect category of each prefix
-#    for rtree in rtreedict.values():
-#        for node in rtree:
-#            top = rtree.search_worst(node.prefix)
-#            node.data["top_prefix"] = top.prefix
-#            if top.prefix == node.prefix:
-#                if len(rtree.search_covered(node.prefix)) == 1:
-#                    node.data["prefix_category"] = "lonely"
-#                else:
-#                    node.data["prefix_category"] = "top"
-#            else:
-#                if top.data["as"] == node.data["as"]:
-#                    node.data["prefix_category"] = "delegated"
-#                else:
-#                    node.data["prefix_category"] = "deaggregated"
-    return_list = [rtreedict, queues, sflags]
-    return return_list
+    for rtree in rtreedict.values():
+        for node in rtree:
+            top = rtree.search_worst(node.prefix)
+            node.data["top_prefix"] = top.prefix
+            if top.prefix == node.prefix:
+                if len(rtree.search_covered(node.prefix)) == 1:
+                    node.data["prefix_category"] = "lonely"
+                else:
+                    node.data["prefix_category"] = "top"
+            else:
+                if top.data["as"] == node.data["as"]:
+                    node.data["prefix_category"] = "delegated"
+                else:
+                    node.data["prefix_category"] = "deaggregated"
+
+    return rtreedict
 
 if __name__ == "__main__":
 

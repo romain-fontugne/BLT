@@ -20,22 +20,18 @@ def PutBar(deno, mole, barlen):
     sys.stderr.write("%s ( %s / %s )" % (s, mole, deno))
 
 
-def tagging(files, timeflag, rtreedict = {}):
+def tagging(files, rtreedict, queues, sflags, timeflag, barflag):
 
-    p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
-    p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
-    num_lines = sum(1 for line in p1.stdout)
+    if barflag == True:
+        p1 = Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1)
+        num_lines = sum(1 for line in p1.stdout)
     
-    p0 = Popen(["bzcat"]+files, stdout=PIPE, bufsize=-1)
-    p1 = Popen(["bgpdump", "-m", "-v", "-"], stdin=p0.stdout, stdout=PIPE, bufsize=-1)
+    p1 = Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1)
 
     update_tag=""
-    queue = []
-    sflag = 0
-    sflag_before = 0
     tagged_messages = ""
-    num_updates = 0
-    withdraw_no = 0
+    num_update = 0
+    num_withdraw = 0
     line_no = 1
 
     for line in p1.stdout:
@@ -49,20 +45,20 @@ def tagging(files, timeflag, rtreedict = {}):
        
         # Tag each message
         if res[2] == "W":
-            withdraw_no += 1
+            num_withdraw += 1
             if rtreedict[zOrig].search_exact(res[5]) is None:
                 tags = tags + " #duplicate_withdraw"
-            
+                
             else:
                 tags = tags + " #remove_prefix"
                 rtreedict[zOrig].delete(res[5])
         else:
-            num_updates += 1
+            num_update += 1
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
             node = rtreedict[zOrig].search_exact(zPfx)
             path_list = sPath.split(' ')
             origin_as = path_list[-1]
-            
+            message_h = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()           
 
             if node is None:
                 tags = tags + " #new_prefix"
@@ -71,11 +67,9 @@ def tagging(files, timeflag, rtreedict = {}):
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
                 node.data["community"] = z2
-                node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+                node.data["MD5"] = message_h
 
             else:
-                message_h = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
-
                 if sPath != node.data["path"]:
                     if origin_as != node.data["path"].split(" ")[-1]:
                         tags = tags + " #origin_change"
@@ -93,29 +87,30 @@ def tagging(files, timeflag, rtreedict = {}):
                             tags = tags + " #community_change"
                         else:
                             tags = tags + " #attribute_change"
-                    else:
+                    else: 
                         tags = tags + " #duplicate_announce"
 
                         # Table Transfer Tag
-                        for Ts in queue:
-                            if int(zDt) - int(Ts) >= 60:
-                                queue.pop(0)
+                        Dt = int(zDt)
+                        for Ts in queues[zOrig]: 
+                            if Dt - Ts >= 60:
+                                queues[zOrig].pop(0)
                             else:
                                 break
-                        queue.append(zDt)
-                        sflag_before = sflag
-                        if len(queue) >= 2000:
-                            sflag = 1
+                        queues[zOrig].append(Dt)
+                        sflags[zOrig]["before"] = sflags[zOrig]["now"]
+                        if len(queues[zOrig]) >= 2000:
+                            sflags[zOrig]["now"] = 1
                         else:
-                            sflag = 0
-                        if sflag_before == 0 and sflag == 1:
+                            sflags[zOrig]["now"] = 0
+                        if sflags[zOrig]["before"] == 0 and sflags[zOrig]["now"] == 1:
                             tags = tags + " #table_transfer"
                         
                 # Update the radix
                 node.data["lasttime"] = zDt
                 node.data["path"] = sPath
                 node.data["community"] = z2
-                node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+                node.data["MD5"] = message_h 
 
             # Prepending Tag
             path_list_uniq = list(set(path_list))
@@ -127,10 +122,12 @@ def tagging(files, timeflag, rtreedict = {}):
         else:
             tagged_messages = tagged_messages + res[1] + tags + "\n"
         
-        PutBar(num_lines, line_no, 50)
-        line_no += 1
-    sys.stderr.write("\n\n")
-    return_list = [rtreedict, tagged_messages, num_updates, withdraw_no] 
+        if barflag == True:     
+            PutBar(num_lines, line_no, 50)
+            line_no += 1
+    if barflag == True:
+        sys.stderr.write("\n\n")
+    return_list = [rtreedict, tagged_messages, queues, sflags, num_update, num_withdraw] 
     return return_list
 
 if __name__ == "__main__":
