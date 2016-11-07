@@ -5,6 +5,7 @@ import radix
 import readrib
 import tagging
 import argparse
+from collections import deque
 
 if __name__ == "__main__":
 	

@@ -3,6 +3,8 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 import hashlib
+from collections import deque
+
 def readrib(files):
     
     rtreedict = {}
@@ -20,7 +22,7 @@ def readrib(files):
 
         if rtreedict.has_key(zOrig) is False:
             rtreedict[zOrig] = radix.Radix()
-            queues[zOrig] = []
+            queues[zOrig] = deque()
             sflags[zOrig] = {}
             sflags[zOrig]["before"] = 0
             sflags[zOrig]["now"] = 0
