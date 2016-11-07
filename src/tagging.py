@@ -5,7 +5,6 @@ import radix
 import hashlib
 import argparse
 import Queue
-from collections import deque
 
 def PutBar(deno, mole, barlen):
     per = 100 * mole/deno
@@ -93,9 +92,7 @@ def tagging(files, rtreedict, queues, sflags, timeflag, barflag):
 
                         # Table Transfer Tag
                         Dt = int(zDt)
-                        if len(queues[zOrig])==0:
-                            break
-                        for Ts in queues[zOrig]: 
+                        for Ts in list(queues[zOrig]): 
                             if Dt - Ts >= 60:
                                 queues[zOrig].pop()
                             else:
