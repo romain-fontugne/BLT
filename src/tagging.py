@@ -92,12 +92,12 @@ def tagging(files, rtreedict, queues, sflags, timeflag, barflag):
 
                         # Table Transfer Tag
                         Dt = int(zDt)
-                        for Ts in queues[zOrig]: 
+                        for Ts in list(queues[zOrig]): 
                             if Dt - Ts >= 60:
-                                queues[zOrig].pop(0)
+                                queues[zOrig].pop()
                             else:
                                 break
-                        queues[zOrig].append(Dt)
+                        queues[zOrig].appendleft(Dt)
                         sflags[zOrig]["before"] = sflags[zOrig]["now"]
                         if len(queues[zOrig]) >= 2000:
                             sflags[zOrig]["now"] = 1
