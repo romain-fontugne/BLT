@@ -5,6 +5,8 @@ import radix
 import readrib
 import tagging
 import argparse
+import time
+import datetime
 
 if __name__ == "__main__":
 	
@@ -28,13 +30,15 @@ if __name__ == "__main__":
         sys.exit()
 	
     # read rib files
-    rib_files = glob.glob(args.rib)
+    rib_file = args.rib
 	
     if len(rib_files)==0:
         print("Files not found!")
         sys.exit()
+    rib_time = rib_file.split("/")[-1][4:16]
+    rib_time = datetime.datetime.strptime(rib_time, "%Y%m%d.%H%M")
+    rib_time = int(time.mktime(strptime.timetuple()))
 
-    rib_files.sort()
     for rf in rib_files:    
         print >> sys.stderr, "reading RIB now..."
 
@@ -56,7 +60,7 @@ if __name__ == "__main__":
         update_files.sort()
 
         for uf in update_files:
-            return_list = tagging.tagging(uf, rtreedict, queues, sflags, args.tag, args.bar)
+            return_list = tagging.tagging(uf, rtreedict, queues, sflags, args.tag, args.bar,rib_time)
 
             rtreedict = return_list[0]
             tagged_messages = return_list[1]

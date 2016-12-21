@@ -20,7 +20,7 @@ def PutBar(deno, mole, barlen):
     sys.stderr.write("%s ( %s / %s )" % (s, mole, deno))
 
 
-def tagging(files, rtreedict, queues, sflags, timeflag, barflag):
+def tagging(files, rtreedict, queues, sflags, timeflag, barflag, rib_time):
 
     if barflag == True:
         p1 = Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1)
@@ -39,7 +39,8 @@ def tagging(files, rtreedict, queues, sflags, timeflag, barflag):
         res = line.split('|',15)
         zOrig = res[3]
         tags = ""
-
+        if res[1] < rib_time:
+            continue
         if rtreedict.has_key(zOrig) is False:
             rtreedict[zOrig] = radix.Radix()
        

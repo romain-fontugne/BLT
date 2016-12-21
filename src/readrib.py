@@ -18,6 +18,7 @@ def readrib(files):
         zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
         
         if zPfx == "0.0.0.0/0":
+	    print line
             continue
 
         if rtreedict.has_key(zOrig) is False:
@@ -66,9 +67,8 @@ if __name__ == "__main__":
         sys.exit()
 
     files.sort()
-
-    rtreedict = readrib(files)
-    for zOrig, rtree in rtreedict.items():
-        for rnode in rtree:
-            print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_category"], rnode.data["top_prefix"]))
+    rtreedict = readrib(files[0])
+    #for zOrig, rtree in rtreedict.items():
+    #    for rnode in rtree:
+    #        print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_category"], rnode.data["top_prefix"]))
 
