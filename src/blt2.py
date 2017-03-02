@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 import readrib
-import tagging
+import tagging2
 import argparse
 import time
 import datetime
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         update_files.sort()
 
         for uf in update_files:
-            return_list = tagging.tagging(uf, rtree, peers, args.tag, args.bar,rib_time)
+            return_list = tagging2.tagging(uf, rtree, peers, args.tag, args.bar,rib_time)
 
             rtree = return_list[0]
             tagged_messages = return_list[1]

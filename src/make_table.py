@@ -32,16 +32,17 @@ average_tree = radix.Radix()
 #	updates = Popen(cmd, stdout=PIPE, bufsize=-1)
 
 # READRIB
-rib_files = glob.glob(args.rib)
 
-if len(rib_files)==0:
-    print("RIB files not found! If you want to analyze traffic, you have to input rib!")
-    sys.exit()
-rib_files.sort()
-for rf in rib_files:    
-    print >> sys.stderr, "reading RIB now..."
-    return_list = readrib.readrib(rf)
-    rtreedict = return_list[0]
+if args.traffic is not None:
+    rib_files = glob.glob(args.rib)
+    if len(rib_files)==0:
+        print("RIB files not found! If you want to analyze traffic, you have to input rib!")
+        sys.exit()
+    rib_files.sort()
+    for rf in rib_files:    
+        print >> sys.stderr, "reading RIB now..."
+        return_list = readrib.readrib(rf)
+        rtreedict = return_list[0]
 
 # UPDATES
 updates = open(args.blt_file, "r")
@@ -80,22 +81,40 @@ i = 0
 for rtree in rtreedict:
     i+=1
     for node in rtree.nodes():
-        anode = average_tree.search_exact(node.prefix)
-        anode.data["message"]           =(anode.data["message"]           +node.data["message"])*(i-1)/i
-        anode.data["traffic_volume"]    =(anode.data["traffic_volume"]    +node.data["traffic_volume"])*(i-1)/i
-        anode.data["packets"]           =(anode.data["packets"]           +node.data["packets"])*(i-1)/i
-        anode.data["remove_prefix"]     =(anode.data["remove_prefix"]     +node.data["remove_prefix"])*(i-1)/i
-        anode.data["new_prefix"]        =(anode.data["new_prefix"]        +node.data["new_prefix"])*(i-1)/i
-        anode.data["community_change"]  =(anode.data["community_change"]  +node.data["community_change"])*(i-1)/i
-        anode.data["attribute_change"]  =(anode.data["attribute_change"]  +node.data["attribute_change"])*(i-1)/i
-        anode.data["other_change"]      =(anode.data["other_change"]      +node.data["other_change"])*(i-1)/i
-        anode.data["flapping"]          =(anode.data["flapping"]          +node.data["flapping"])*(i-1)/i
-        anode.data["prepending"]        =(anode.data["prepending"]        +node.data["prepending"])*(i-1)/i
-        anode.data["path_change"]       =(anode.data["path_change"]       +node.data["path_change"])*(i-1)/i
-        anode.data["origin_change"]     =(anode.data["origin_change"]     +node.data["origin_change"])*(i-1)/i
-        anode.data["duplicate_withdraw"]=(anode.data["duplicate_withdraw"]+node.data["duplicate_withdraw"])*(i-1)/i
-        anode.data["duplicate_announce"]=(anode.data["duplicate_announce"]+node.data["duplicate_announce"])*(i-1)/i
-        anode.data["table_transfer"]    =(anode.data["table_transfer"]    +node.data["table_transfer"])*(i-1)/i
+        if i == 1:
+            anode = average_tree.search_exact(node.prefix)
+            anode.data["message"]           = node.data["message"]
+            anode.data["traffic_volume"]    = node.data["traffic_volume"]
+            anode.data["packets"]           = node.data["packets"]
+            anode.data["remove_prefix"]     = node.data["remove_prefix"]
+            anode.data["new_prefix"]        = node.data["new_prefix"]
+            anode.data["community_change"]  = node.data["community_change"]
+            anode.data["attribute_change"]  = node.data["attribute_change"]
+            anode.data["other_change"]      = node.data["other_change"]
+            anode.data["flapping"]          = node.data["flapping"]
+            anode.data["prepending"]        = node.data["prepending"]
+            anode.data["path_change"]       = node.data["path_change"]
+            anode.data["origin_change"]     = node.data["origin_change"]
+            anode.data["duplicate_withdraw"]= node.data["duplicate_withdraw"]
+            anode.data["duplicate_announce"]= node.data["duplicate_announce"]
+            anode.data["table_transfer"]    = node.data["table_transfer"]
+        else:
+            anode = average_tree.search_exact(node.prefix)
+            anode.data["message"]           =(anode.data["message"]           +node.data["message"])*(i-1)/i
+            anode.data["traffic_volume"]    =(anode.data["traffic_volume"]    +node.data["traffic_volume"])*(i-1)/i
+            anode.data["packets"]           =(anode.data["packets"]           +node.data["packets"])*(i-1)/i
+            anode.data["remove_prefix"]     =(anode.data["remove_prefix"]     +node.data["remove_prefix"])*(i-1)/i
+            anode.data["new_prefix"]        =(anode.data["new_prefix"]        +node.data["new_prefix"])*(i-1)/i
+            anode.data["community_change"]  =(anode.data["community_change"]  +node.data["community_change"])*(i-1)/i
+            anode.data["attribute_change"]  =(anode.data["attribute_change"]  +node.data["attribute_change"])*(i-1)/i
+            anode.data["other_change"]      =(anode.data["other_change"]      +node.data["other_change"])*(i-1)/i
+            anode.data["flapping"]          =(anode.data["flapping"]          +node.data["flapping"])*(i-1)/i
+            anode.data["prepending"]        =(anode.data["prepending"]        +node.data["prepending"])*(i-1)/i
+            anode.data["path_change"]       =(anode.data["path_change"]       +node.data["path_change"])*(i-1)/i
+            anode.data["origin_change"]     =(anode.data["origin_change"]     +node.data["origin_change"])*(i-1)/i
+            anode.data["duplicate_withdraw"]=(anode.data["duplicate_withdraw"]+node.data["duplicate_withdraw"])*(i-1)/i
+            anode.data["duplicate_announce"]=(anode.data["duplicate_announce"]+node.data["duplicate_announce"])*(i-1)/i
+            anode.data["table_transfer"]    =(anode.data["table_transfer"]    +node.data["table_transfer"])*(i-1)/i
 
 # TRAFFIC
 rib_traffic = 0

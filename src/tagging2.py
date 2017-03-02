@@ -127,7 +127,7 @@ def tagging(files, rtree, peers, timeflag, barflag, rib_time):
         if timeflag == False:
             tagged_messages = tagged_messages + line + tags + "\n"
         else:
-            tagged_messages = tagged_messages + res[1] + tags + "\n"
+            tagged_messages = tagged_messages + res[1] +res[3] + res[5] + tags + "\n"
         
         if barflag == True:     
             PutBar(num_lines, line_no, 50)
