@@ -8,13 +8,13 @@ from collections import deque
 def readrib(files):
     
     peers = dict()
+    rtree = radix.Radix()
 
     p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", files], stdout=PIPE, bufsize=-1)
 
     for line in p1.stdout: 
         res = line.split('|',15)
         zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
-        rtree = radix.Radix()
         
         if zPfx == "0.0.0.0/0":
             continue
