@@ -19,8 +19,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    if args.outfile != None:
-        f = open(args.outfile, "w")
+    if args.outfile == None:
+        outfile = ""
+    else:
+        outfile = args.outfile
     
     num_update = 0
     num_withdraw = 0 
@@ -58,21 +60,21 @@ if __name__ == "__main__":
         update_files.sort()
 
         for uf in update_files:
-            return_list = tagging.tagging(uf, rtree, peers, args.tag, args.bar,rib_time)
+            return_list = tagging.tagging(uf, rtree, peers, args.tag, args.bar,rib_time, outfile)
 
             rtree = return_list[0]
-            tagged_messages = return_list[1]
-            peers = return_list[2]
-            num_update += return_list[3]
-            num_withdraw += return_list[4]
+            # tagged_messages = return_list[1]
+            peers = return_list[1]
+            num_update += return_list[2]
+            num_withdraw += return_list[3]
 
-            if args.outfile != None:
-                f.write(tagged_messages)
-            else:
-                print tagged_messages
+            #if args.outfile != None:
+            #    f.write(tagged_messages)
+            #else:
+            #    print tagged_messages
         
-    if args.outfile != None:
-        f.close()
+    #if args.outfile != None:
+    #    f.close()
 
     print >> sys.stderr, "\n\n" + "#peers = " +  str(len(peers))
     print >> sys.stderr, "#updates = " + str(num_update)
