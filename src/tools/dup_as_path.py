@@ -41,14 +41,14 @@ for blts in bltfile:
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
 
             pl = 0
-            if tag == "duplicate_announce":
-                if sPath not in path_len["duplicate"]:
-                    path_len["duplicate"][sPath] = 0
-                path_len["duplicate"][sPath] += 1
+            if "duplicate_announce" in tag:
+                if len(sPath) not in path_len["duplicate"]:
+                    path_len["duplicate"][len(sPath)] = 0
+                path_len["duplicate"][len(sPath)] += 1
             else:
-                if sPath not in path_len["announce"]:
-                    path_len["announce"][sPath] = 0
-                path_len["announce"][sPath] += 1
+                if len(sPath) not in path_len["announce"]:
+                    path_len["announce"][len(sPath)] = 0
+                path_len["announce"][len(sPath)] += 1
 
 
 f = open("/home/tktbtk/Data/pickle/hist_announce_" + date +".pkl", "wb")
