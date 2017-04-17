@@ -51,5 +51,5 @@ for blts in bltfile:
                 path_len["announce"][sPath] += 1
 
 
-f = open("/home/tktbtk/Data/pickle/hist_announce_" + date +".png", "wb")
+f = open("/home/tktbtk/Data/pickle/hist_announce_" + date +".pkl", "wb")
 pickle.dump(path_len, f)
