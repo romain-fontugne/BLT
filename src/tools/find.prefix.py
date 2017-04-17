@@ -36,7 +36,6 @@ for blt in args.blts:
     for p in pfx:
         day_prefixes[p] = 0
     for bf_ in blt_files:
-        print bf_
         bf = open(bf_, "r")
         for line in bf:
             if "duplicate_announce" not in line:
@@ -49,7 +48,7 @@ for blt in args.blts:
                 prefixes[zPfx] = [0]*number
             day_prefixes[zPfx] += 1
     print day_prefixes
-    for prefix in day_prefixes.items:
+    for prefix in day_prefixes.items():
         prefixes[prefix[0]].append(day_prefixes[1])
     number += 1
 fig = plt.figure()
