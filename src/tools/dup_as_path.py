@@ -41,6 +41,15 @@ for blts in bltfile:
             zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
 
             sPath = sPath.split()
+            
+            #if len(sPath) > 100:
+            #    sys.stdout.write(line)
+            #    for t in tag:
+            #        sys.stdout.write(" #" + t)
+            #    sys.stdout.write("\n")
+            if len(sPath) > 20:
+                continue
+
             if "duplicate_announce" in tag:
                 if len(sPath) not in path_len["duplicate"]:
                     path_len["duplicate"][len(sPath)] = 0
