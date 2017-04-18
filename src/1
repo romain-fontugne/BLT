@@ -34,6 +34,8 @@ def tagging(files, rtree, peers, timeflag, barflag, rib_time, outfile):
     num_withdraw = 0
     line_no = 1
     i = 0
+    path_len = dict()
+    with_tree = radix.Radix()
 
 
     if outfile != "":
@@ -62,12 +64,22 @@ def tagging(files, rtree, peers, timeflag, barflag, rib_time, outfile):
             node = rtree.search_exact(zPfx)
             if node is None or zOrig not in node.data:
                 tags = tags + " #duplicate_withdraw"
-                
+                # BGP4MP|1300152223|W|195.66.224.99|13237|175.136.156.0/22
+                wnode = with_tree.search_exact(zPfx):
+                    if wnode == None:
+                        continue
+                    else:
+                        if wnode.data("path_length") in path_len_dup:
+                            path_len_dup[wnode.data("path_length")] += 1
+                        else:
+                            path_len_dup[wnode.data("path_length")] = 1
             else:
                 tags = tags + " #remove_prefix"
+                node.data[zOrig][""]
                 node.data.pop(zOrig)
                 if len(node.data) == 0:
                     rtree.delete(zPfx)
+                    
         #    time2 = dt.now()
         #    delta2 = (time2-time1).total_seconds()
         #    sys.stderr.write("debug :Withdraw :  "  + str(i) + " " + str(delta2) + "\n")

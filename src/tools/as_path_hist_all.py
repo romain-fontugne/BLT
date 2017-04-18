@@ -3,10 +3,11 @@ from subprocess import Popen, PIPE
 import glob
 import radix
 import readrib
-import tagging
+import tagging_hist
 import argparse
 import time
 import datetime
+import pickle
 
 if __name__ == "__main__":
 	
@@ -37,8 +38,9 @@ if __name__ == "__main__":
     if len(rib_file)==0:
         print("Files not found!")
         sys.exit()
-    rib_time = rib_file.split("/")[-1][4:16]
-    rib_time = datetime.datetime.strptime(rib_time, "%Y%m%d.%H%M")
+    rib_time_ = rib_file.split("/")[-1][4:16]
+    rib_time = datetime.datetime.strptime(rib_time_, "%Y%m%d.%H%M")
+    file_time = str(rib_time.strftime("%Y%m%d"))
     rib_time = int(time.mktime(rib_time.timetuple()))
 
     print >> sys.stderr, "reading RIB now..."
@@ -47,8 +49,12 @@ if __name__ == "__main__":
 
     rtree = return_list[0]
     peers = return_list[1]
-
+    dup = 0
+    remove = 0
     # read update files and tag them
+    path_len = dict()
+    path_len_dup = dict()
+    with_tree = radix.Radix()
     for update in args.updates:
         print >> sys.stderr, "reading %s now..." % update
 
@@ -58,15 +64,32 @@ if __name__ == "__main__":
             sys.exit()
 			
         update_files.sort()
-
         for uf in update_files:
-            return_list = tagging.tagging(uf, rtree, peers, args.tag, args.bar,rib_time, outfile)
+            return_list = tagging_hist.tagging(uf, rtree, with_tree, peers, args.tag, args.bar,rib_time, outfile, path_len, path_len_dup)
 
             rtree = return_list[0]
             # tagged_messages = return_list[1]
             peers = return_list[1]
             num_update += return_list[2]
             num_withdraw += return_list[3]
+            path_len = return_list[4]
+            path_len_dup = return_list[5]
+            dup += return_list[6]
+            remove += return_list[7]
+            with_tree = return_list[8]
+            
+    print "remove = " + str(remove)
+    print "duplicate = " + str(dup)
+    print "path_len:"
+    print path_len
+    print "\npath_len_dup:"
+    print path_len_dup
+    path_len_list = [path_len, path_len_dup]
+    with open("/home/tktbtk/Data/aspath_hist_data_" + file_time +".pkl", "wb") as f:
+        pickle.dump(path_len_list, f)
+    
+
+    
 
             #if args.outfile != None:
             #    f.write(tagged_messages)

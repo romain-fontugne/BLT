@@ -7,9 +7,8 @@ from collections import deque
 
 def readrib(files):
     
-    rtreedict = {}
-    queues = {}
-    sflags = {}
+    peers = dict()
+    rtree = radix.Radix()
 
     p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", files], stdout=PIPE, bufsize=-1)
 
@@ -20,20 +19,23 @@ def readrib(files):
         if zPfx == "0.0.0.0/0":
             continue
 
-        if rtreedict.has_key(zOrig) is False:
-            rtreedict[zOrig] = radix.Radix()
-            queues[zOrig] = deque()
-            sflags[zOrig] = {}
-            sflags[zOrig]["before"] = 0
-            sflags[zOrig]["now"] = 0
+        if peers.has_key(zOrig) is False:
+            peers[zOrig] = dict()
+            peers[zOrig]["queues"] = deque()
+            peers[zOrig]["sflags"] = dict()
+            peers[zOrig]["sflags"]["before"] = 0
+            peers[zOrig]["sflags"]["now"] = 0
 
-        node = rtreedict[zOrig].add(zPfx)
-        node.data["firsttime"] = zDt
-        node.data["lasttime"] = zDt
-        node.data["path"] = sPath 
-        node.data["community"] = z2
-        node.data["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
-        node.data["as"] = sPath.split(" ")[-1]
+        node = rtree.add(zPfx)
+        if zOrig not in node.data:
+            node.data[zOrig] = dict()
+        node.data[zOrig]["firsttime"] = zDt
+        node.data[zOrig]["lasttime"] = zDt
+        node.data[zOrig]["path"] = sPath 
+        node.data[zOrig]["community"] = z2
+        node.data[zOrig]["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
+        node.data[zOrig]["as"] = sPath.split(" ")[-1]
+        
 
     # Detect category of each prefix
 #    for rtree in rtreedict.values():
@@ -50,7 +52,8 @@ def readrib(files):
 #                    node.data["prefix_category"] = "delegated"
 #                else:
 #                    node.data["prefix_category"] = "deaggregated"
-    return_list = [rtreedict, queues, sflags]
+    print "The number of peers is " + str(len(peers))
+    return_list = [rtree, peers]
     return return_list
 
 if __name__ == "__main__":
@@ -66,9 +69,4 @@ if __name__ == "__main__":
         sys.exit()
 
     files.sort()
-
-    rtreedict = readrib(files)
-    for zOrig, rtree in rtreedict.items():
-        for rnode in rtree:
-            print("%s %s: #%s   top_prefix = %s" % (zOrig, rnode.prefix, rnode.data["prefix_category"], rnode.data["top_prefix"]))
-
+    rtree = readrib(files[0])
