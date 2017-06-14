@@ -1,31 +1,47 @@
-import pandas as pd
-from matplotlib import pyplot as plt
+import numpy as np
 
-def convert_list_pd(y):
-    y_pandas = pd.DataFrame()
-    for y_ in y:
-        l = list()
-        for w in range(len(y_)):
-            l.append(y_[w])
-        y_pandas = y_pandas.append(pd.DataFrame([l], columns=[0,1,2]), ignore_index=True)
-    return y_pandas
-
-def allrolling_std(window, data):
+def allrolling_std(data, window):
+    mean = list()
+    median = list()
     std = list()
-    avg = list()
-    nrow, ncolumn = data.shape
-    for i in range(nrow-(window-1)):
-        data_ = pd.DataFrame()
-        for w in range(ncolumn):
-            data_ = pd.concat([data_, data.ix[i:i+(window-1),w]], axis=0, ignore_index=True)
-        std.append(data_.std())
-        avg.append(data_.mean())
-    return [std, avg]
 
-windows = 4
+    time = len(data[0])
+    for t in range(time-window+1):
+        tmp = list()
+        for an in data:
+            for value in an[t:t+window]:
+                if value == "-":
+                    continue
+                tmp.append(value)
+        
+        mean.append(np.mean(tmp))
+        median.append(np.median(tmp))
+        std.append(np.std(tmp))
+    return [mean, median, std]
 
-x = [1,2,3,4,5,6,7,8,9]
-y = [[2,3,4], [1,2,3], [5,6,7], [1,2,3], [2,3,4], [5,3,4], [1,5,4], [4,2,3], [5,7,6]]
-y_pandas = convert_list_pd(y)
-print y_pandas
-print allrolling_std(windows, y_pandas)
+if __name__ == "__main__":
+    windows = 4
+
+    x = [0,1,2,3,4,5,6]
+    y = [[0,2,3,4,5,6,7], [4,3,5,6,7,8,7], [4,5,6,3,4,5,6], [3,4,5,2,4,5,7]]
+    print allrolling_std(y, windows)
+
+    y_ = list()
+    x_ = list()
+    mean = list()
+    median = list()
+    mean_ = list()
+    median_ = list()
+    for t in range(len(y[0])):
+        for i in range(len(y)):
+            if len(x_)-1 != t:
+                x_.append(list())
+            x_[t].append(y[i][t])
+    a = np.ones(windows)/windows
+    for i in x_:
+        mean.append(np.mean(i))
+        median.append(np.median(i))
+    mean_.append(np.convolve(mean, a, "valid"))
+
+    print list(mean_)
+    print list(median_)

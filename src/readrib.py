@@ -4,11 +4,13 @@ import glob
 import radix
 import hashlib
 from collections import deque
+import re
 
-def readrib(files):
+def readrib(files, version):
     
     peers = dict()
     rtree = radix.Radix()
+    v4 = r"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"
 
     p1 = Popen(["bgpdump", "-m", "-v", "-t", "change", files], stdout=PIPE, bufsize=-1)
 
@@ -18,6 +20,13 @@ def readrib(files):
         
         if zPfx == "0.0.0.0/0":
             continue
+        
+        if version == "4":
+            if not re.match(v4, res[3]):
+                continue
+        elif version == "6":
+            if re.match(v4, res[3]):
+                continue
 
         if peers.has_key(zOrig) is False:
             peers[zOrig] = dict()
@@ -35,6 +44,7 @@ def readrib(files):
         node.data[zOrig]["community"] = z2
         node.data[zOrig]["MD5"] = hashlib.md5(z0 + z1 + z2 + z3 + z4 + z5).digest()
         node.data[zOrig]["as"] = sPath.split(" ")[-1]
+        node.data[zOrig]["old_path"] = ""
         
 
     # Detect category of each prefix

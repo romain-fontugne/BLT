@@ -14,16 +14,24 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--tag', help = 'desplay only timestamps and tags', action = 'store_true')
     parser.add_argument('-o', '--outfile', help = 'output text file')
     parser.add_argument('-b', '--bar', help = 'show the progress bar', action = 'store_true')
+    parser.add_argument('-p', '--pipe',help = 'you can pipe some code from bgpdump')
+    parser.add_argument('-v', '--version', help = 'if you want to analyze only ipv4 or ipv6')
     parser.add_argument("rib")
     parser.add_argument("updates", nargs = "*")
 
     args = parser.parse_args()
     
+    print args.pipe
     if args.outfile == None:
         outfile = ""
     else:
         outfile = args.outfile
     
+    if args.version != None and args.version != "4" and args.version != "6":
+        print "please input -v 6 or -v 4"
+        sys.exit()
+
+
     num_update = 0
     num_withdraw = 0 
 
@@ -43,7 +51,7 @@ if __name__ == "__main__":
 
     print >> sys.stderr, "reading RIB now..."
 
-    return_list = readrib.readrib(rib_file)
+    return_list = readrib.readrib(rib_file, args.version)
 
     rtree = return_list[0]
     peers = return_list[1]
@@ -60,7 +68,7 @@ if __name__ == "__main__":
         update_files.sort()
 
         for uf in update_files:
-            return_list = tagging.tagging(uf, rtree, peers, args.tag, args.bar,rib_time, outfile)
+            return_list = tagging.tagging(uf, args.pipe, rtree, peers, args.tag, args.bar,rib_time, outfile, args.version)
 
             rtree = return_list[0]
             # tagged_messages = return_list[1]
