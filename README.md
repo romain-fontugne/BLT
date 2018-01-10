@@ -1,7 +1,7 @@
 # BLT: BGP-update Labeling Tool
 
 Clarify BGP mess by attaching labels to each BGP update
-see doc/labels.md for the list of labels.
+see doc/taxonomy.md for the detail of labels.
 
 In addition to BLT, we developed simple anomaly detector that can catch routing anomaly and show it visibly.
 
