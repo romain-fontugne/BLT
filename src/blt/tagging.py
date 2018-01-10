@@ -23,24 +23,9 @@ def PutBar(deno, mole, barlen):
     sys.stderr.write("%s ( %s / %s )" % (s, mole, deno))
 
 
-def tagging(files, pipe, rtree, peers, timeflag, barflag, rib_time, outfile, version):
-    if barflag == True:
-        p1 = Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1)
-        num_lines = sum(1 for line in p1.stdout)
-    if pipe == None:
-        dump = Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1)
-    else:
-        pipe = pipe.split("|")
-        pipe.pop(0)
-        print pipe
-        process_number = list()
-        process_number.append(Popen(["bgpdump", "-m", "-v", files], stdout=PIPE, bufsize=-1))
-        for p in pipe:
-            p = p.split()
-            process_number.append(Popen(p,stdin=process_number[-1].stdout, stdout=PIPE, bufsize=-1))
-        dump = process_number[-1]
-    
-    
+def tagging(rtree, peers, timeflag,  rib_time, outfile, version, startTime, endTime, collector):
+
+    dump = Popen(["bgpreader", "-w", startTime + "," + endTime, "-c", "route-views." + collector, "-m", "-t", "updates"], stdout=PIPE, bufsize=-1)
 
     update_tag=""
     tagged_messages = ""
@@ -70,6 +55,8 @@ def tagging(files, pipe, rtree, peers, timeflag, barflag, rib_time, outfile, ver
         elif version == "6":
             if re.match(v4, res[3]):
                 continue
+        if res[0] != "BGP4MP":
+            continue
        
         # Tag each message
         if res[2] == "W":
@@ -87,7 +74,11 @@ def tagging(files, pipe, rtree, peers, timeflag, barflag, rib_time, outfile, ver
                     rtree.delete(zPfx)
 
         else:
-            zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
+            try:
+                zTd, zDt, zS, zOrig, zAS, zPfx, sPath, zPro, zOr, z0, z1, z2, z3, z4, z5 = res
+            except:
+                print "ignore " + line
+                continue
             num_update += 1
             node = rtree.search_exact(zPfx)
             path_list = sPath.split(' ')
@@ -188,9 +179,6 @@ def tagging(files, pipe, rtree, peers, timeflag, barflag, rib_time, outfile, ver
             else:
                 f.write(res[1] + tags + "\n")
         
-        if barflag == True:     
-            PutBar(num_lines, line_no, 50)
-            line_no += 1
         #time10 = dt.now()
         #delta9 = (time10-time9).total_seconds()
         #sys.stderr.write("debug :footer :  "  + str(i) + " " + str(delta9) + "\n")
@@ -198,8 +186,6 @@ def tagging(files, pipe, rtree, peers, timeflag, barflag, rib_time, outfile, ver
         #delta10 = (time2-time1).total_seconds()
         #sys.stderr.write("debug :Update :  "  + str(i) + " " + str(delta10) + "\n")
         i += 1
-    if barflag == True:
-        sys.stderr.write("\n\n")
     #return_list = [rtree, tagged_messages, peers, num_update, num_withdraw] 
     return_list = [rtree, peers, num_update, num_withdraw] 
     return return_list
