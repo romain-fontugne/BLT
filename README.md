@@ -13,11 +13,12 @@ pip install py-radix
 ```
 Install BGPStream Core. See official site (https://bgpstream.caida.org/docs/install/bgpstream) for more detail.
 
-After installing dependency run below command
+After installing dependency run below example command
 ```bash:
 python blt.py -v 4 -s 20170825 -e 20170826 -c route-views.linx -o /hoge/hoge.blt
 ```
-Then you can get BLT file in which there are BGP update messages with labels based on the taxonomy.(see doc/taxonomy.md for the detail)
+Then you can get BLT file in which there are BGP update messages with labels based on the taxonomy (see doc/taxonomy.md for the detail) between 2017/08/25 00:00 and 2017/08/26 00:00.
+And these messages are only IPv4.
 
 This is just a text file, so you can grep for what you want to focus on (labels, prefixes, AS etc...) easily.
 
