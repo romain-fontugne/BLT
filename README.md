@@ -1,9 +1,9 @@
 # BLT: BGP-update Labeling Tool
 
-Clarify BGP mess by attaching labels to each BGP update
-see doc/taxonomy.md for the detail of labels.
+Help to mine BGP data by labeling each BGP update message.
+See doc/taxonomy.md for the detail of labels.
 
-In addition to BLT, we developed simple anomaly detector that can catch routing anomaly and show it visibly.
+In addition to BLT, we developed a simple anomaly detector to find significant routing anomalies.
 
 ## Get Started
 ### Usage of BLT:
@@ -18,24 +18,19 @@ After installing dependency run below example command
 python blt.py -v 4 -s 20170825 -e 20170826 -c route-views.linx -o /hoge/hoge.blt
 ```
 Then you can get BLT file in which there are BGP update messages with labels based on the taxonomy (see doc/taxonomy.md for the detail) between 2017/08/25 00:00 and 2017/08/26 00:00.
-And these messages are only IPv4.
 
 This is just a text file, so you can grep for what you want to focus on (labels, prefixes, AS etc...) easily.
 
 ### Usage of anomaly detection:
-This tool are made as one of the application of BLT (https://github.com/romain-fontugne/BLT)
-which can classify messages based on the proposed taxonomy and attach the labels to BGP messages.
-You can detect routing anomalies easily using these tools.
+Detect significant routing anomalies easily using this anomaly detector based on BLT taxonomy.
 
 ### Example
-In this section, we describe how to use BLT-tools using two examples.
-
 #### 1. Monitoring Internet-wide events
 On August 25th 2017 around 3:22 UTC, Google (AS15169) leaks over 150k routes for small prefixes that were presumably used for their internal traffic engineering.
 This kind of incident is called "Route-Leak".
 You can catch this incident using our anomaly-detector.
 
-+ Run BLT to get messages with labels. (You can check the detail of BLT here https://github.com/romain-fontugne/BLT)
++ Run BLT to get BGP messages and corresponding labels.
 ```bash:
 python bltReader.py -v 4 -s 20170825  -f 20170826 -c route-views.linx -o ~/test/20170825_GoogleLeak/20170825_GoogleLeak.blt
 ```
@@ -61,7 +56,7 @@ the other can grep for the AS.
 In this example, we grep for the prefixes in Syria.
 
 
-+ Run BLT to get messages with labels. (You can check the detail of BLT here https://github.com/romain-fontugne/BLT)
++ Run BLT to get BGP messages and corresponding labels.
 ```bash:
 python bltReader.py -v 4 -s 20170601  -f 20170601 -c route-views.linx -o ~/test/20170601_SyriaOutage/20170601_SyriaOutage.blt
 ```
